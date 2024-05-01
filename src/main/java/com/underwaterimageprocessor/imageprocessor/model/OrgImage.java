@@ -1,5 +1,6 @@
 package com.underwaterimageprocessor.imageprocessor.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 
 import lombok.Getter;
@@ -7,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.awt.image.BufferedImage;
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.Map;
 
 @AllArgsConstructor
@@ -16,8 +17,9 @@ import java.util.Map;
 @Getter
 public class OrgImage {
 
-    private Date requestDate;
-    private String Author;
+    private String requestDate;
+    private String Author; //is the email address or other identifier
     private byte[] imageData;
+    private String fileType; //should be in ".jpg" format
 
 }

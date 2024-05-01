@@ -1,5 +1,6 @@
 package com.underwaterimageprocessor.imageprocessor.controller;
 
+import com.underwaterimageprocessor.imageprocessor.model.OrgImage;
 import com.underwaterimageprocessor.imageprocessor.util.ImageUtils;
 import com.underwaterimageprocessor.imageprocessor.service.ImageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,13 +32,33 @@ public class ImageController {
     }
 
     @PostMapping("/upload/image")
-    public ResponseEntity<?> uploadImage(@RequestParam("image") MultipartFile file) throws IOException {
+    public ResponseEntity<String> uploadImage(@RequestParam("image") MultipartFile file,
+                                              @RequestParam("author") String author,
+                                              @RequestParam("fileType") String fileType) throws IOException {
 
         System.out.println("ImageController - uploadImage - Enter");
-        BufferedImage editedImage = imageService.uploadImage(file);
+        String imageUploadStatus = imageService.uploadImage(file, author, fileType);
 
-        byte[] byteImg = ImageUtils.toByteArray(editedImage, "jpg");
-        String encodedImg = Base64.encodeBase64String(byteImg);
+        return ResponseEntity.status(HttpStatus.OK).body(imageUploadStatus);
+    }
+
+    @GetMapping("/download/orgimage/{author}")
+    public ResponseEntity<?> downloadOrgImage(@PathVariable String author){
+
+        OrgImage orgImage;
+
+        try {
+            orgImage = ImageUtils.loadOrgImage(author);
+        } catch (Exception e){
+            System.out.println("Failed to fetch Image");
+            System.out.println(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Failed to fetch Iamge");
+        }
+
+        if(orgImage.getImageData() == null || orgImage.getImageData().equals(0))
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Image Not Found");
+
+        String encodedImg = Base64.encodeBase64String(orgImage.getImageData());
 
         return ResponseEntity.status(HttpStatus.OK).body(encodedImg);
     }
