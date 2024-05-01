@@ -9,7 +9,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
+
 
 @Service
 public class ImageService {
@@ -39,10 +39,52 @@ public class ImageService {
 
     }
 
-    public BufferedImage whiteBalanceAdjust(MultipartFile file) throws IOException{
+    public BufferedImage autoWhiteBalanceAdjust(BufferedImage image) throws IOException{
 
-    //TODO
-        return null;
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int[] histogramR = new int[256];
+        int[] histogramG = new int[256];
+        int[] histogramB = new int[256];
+
+        // Compute histograms for each channel
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int rgb = image.getRGB(x, y);
+                int r = (rgb >> 16) & 0xFF;
+                int g = (rgb >> 8) & 0xFF;
+                int b = rgb & 0xFF;
+                histogramR[r]++;
+                histogramG[g]++;
+                histogramB[b]++;
+            }
+        }
+
+        // Find the maximum value in each channel
+        int maxR = ImageUtils.findMax(histogramR);
+        int maxG = ImageUtils.findMax(histogramG);
+        int maxB = ImageUtils.findMax(histogramB);
+
+        // Find the maximum intensity among all channels
+        int maxIntensity = Math.max(Math.max(maxR, maxG), maxB);
+
+        // Adjust each pixel in the image
+        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int rgb = image.getRGB(x, y);
+                int r = (int) (((rgb >> 16) & 0xFF) * (255.0f / maxIntensity));
+                int g = (int) (((rgb >> 8) & 0xFF) * (255.0f / maxIntensity));
+                int b = (int) ((rgb & 0xFF) * (255.0f / maxIntensity));
+                r = Math.min(255, Math.max(0, r));
+                g = Math.min(255, Math.max(0, g));
+                b = Math.min(255, Math.max(0, b));
+                int newRGB = (r << 16) | (g << 8) | b;
+                result.setRGB(x, y, newRGB);
+            }
+        }
+
+        return result;
 
     }
 

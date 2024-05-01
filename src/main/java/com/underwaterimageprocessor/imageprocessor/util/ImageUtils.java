@@ -94,5 +94,15 @@ public class ImageUtils {
         return orgImage;
     }
 
+    //findmax in histogram
+    public static int findMax(int[] histogram) {
+        int max = 0;
+        for (int value : histogram) {
+            if (value > max) {
+                max = value;
+            }
+        }
+        return max;
+    }
 
 }

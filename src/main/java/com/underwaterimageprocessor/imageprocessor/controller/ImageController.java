@@ -15,9 +15,11 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.time.StopWatch;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -61,6 +63,27 @@ public class ImageController {
         String encodedImg = Base64.encodeBase64String(orgImage.getImageData());
 
         return ResponseEntity.status(HttpStatus.OK).body(encodedImg);
+    }
+
+    @PostMapping("/applywhitebalance")
+    public ResponseEntity<?> applyAutoWhiteBalance(@RequestParam("image") MultipartFile file,
+                                                   @RequestParam("fileType") String fileType) throws IOException{
+        System.out.println("ImageController - applyAutoWhiteBalance - Enter");
+        StopWatch obj = new StopWatch();
+
+        obj.start();
+        BufferedImage toEdit = ImageIO.read(file.getInputStream());
+        BufferedImage editedImage = imageService.autoWhiteBalanceAdjust(toEdit);
+        String encodedImg = Base64.encodeBase64String(ImageUtils.toByteArray(editedImage, fileType));
+        obj.stop();
+
+        System.out.println("ImageController - applyAutoWhiteBalance - Image successfully edited.");
+        System.out.println("timestamp: " + java.time.ZonedDateTime.now()
+                .format(DateTimeFormatter.ofPattern("MM/dd/yyyy hh:mm:ss")));
+        System.out.println("time taken to execute: " + obj.getTime() + " ms");
+
+        return ResponseEntity.status(HttpStatus.OK).body(encodedImg);
+
     }
 
 
