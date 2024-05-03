@@ -279,5 +279,6 @@ public class ImageService {
     //white balance of an image using the Retinex algorithm - end
 
     //TODO - To add, [Huo05].
+    //TODO - Add noise removal Algorithms
 
 }
