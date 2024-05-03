@@ -67,13 +67,19 @@ public class ImageController {
 
     @PostMapping("/applywhitebalance")
     public ResponseEntity<?> applyAutoWhiteBalance(@RequestParam("image") MultipartFile file,
-                                                   @RequestParam("fileType") String fileType) throws IOException{
+                                                   @RequestParam("fileType") String fileType,
+                                                   @RequestParam("algorithm") String alg) throws IOException{
         System.out.println("ImageController - applyAutoWhiteBalance - Enter");
         StopWatch obj = new StopWatch();
 
         obj.start();
         BufferedImage toEdit = ImageIO.read(file.getInputStream());
-        BufferedImage editedImage = imageService.autoWhiteBalanceAdjust(toEdit);
+        BufferedImage editedImage = imageService.whiteBalanceAlg(toEdit, alg);
+
+        if(editedImage == null){
+            return ResponseEntity.status(HttpStatus.OK).body("Error in code");
+        }
+
         String encodedImg = Base64.encodeBase64String(ImageUtils.toByteArray(editedImage, fileType));
         obj.stop();
 
