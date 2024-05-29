@@ -1,5 +1,6 @@
 package com.underwaterimageprocessor.imageprocessor.controller;
 
+import com.underwaterimageprocessor.imageprocessor.exceptions.ImageNotFoundException;
 import com.underwaterimageprocessor.imageprocessor.model.OrgImage;
 import com.underwaterimageprocessor.imageprocessor.util.ImageUtils;
 import com.underwaterimageprocessor.imageprocessor.service.ImageService;
@@ -44,8 +45,8 @@ public class ImageController {
         return ResponseEntity.status(HttpStatus.OK).body(imageUploadStatus);
     }
 
-    @GetMapping("/download/orgimage/{author}")
-    public ResponseEntity<?> downloadOrgImage(@PathVariable String author){
+    @GetMapping("/download/image/orginal/{author}")
+    public ResponseEntity<?> downloadOrgImage(@PathVariable String author) throws ImageNotFoundException, Exception {
 
         OrgImage orgImage;
 
@@ -65,7 +66,12 @@ public class ImageController {
         return ResponseEntity.status(HttpStatus.OK).body(encodedImg);
     }
 
-    @PostMapping("/applywhitebalance")
+    @GetMapping("/download/image/edited/{author}") //TODO
+    public ResponseEntity<?> downloadEditedImage(@PathVariable String author){
+        return ResponseEntity.status(HttpStatus.OK).body("image");
+    }
+
+    @PostMapping("/image/applywhitebalance")
     public ResponseEntity<?> applyAutoWhiteBalance(@RequestParam("image") MultipartFile file,
                                                    @RequestParam("fileType") String fileType,
                                                    @RequestParam("algorithm") String alg) throws IOException{
@@ -89,7 +95,6 @@ public class ImageController {
         System.out.println("time taken to execute: " + obj.getTime() + " ms");
 
         return ResponseEntity.status(HttpStatus.OK).body(encodedImg);
-
     }
 
 
