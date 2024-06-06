@@ -3,21 +3,18 @@ package com.underwaterimageprocessor.imageprocessor.controller;
 import com.underwaterimageprocessor.imageprocessor.exceptions.ImageNotFoundException;
 import com.underwaterimageprocessor.imageprocessor.model.OrgImage;
 import com.underwaterimageprocessor.imageprocessor.util.ImageUtils;
-import com.underwaterimageprocessor.imageprocessor.service.ImageService;
+import com.underwaterimageprocessor.imageprocessor.service.impl.ImageServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.time.StopWatch;
@@ -27,22 +24,20 @@ import org.apache.commons.lang3.time.StopWatch;
 public class ImageController {
 
     @Autowired
-    private ImageService imageService;
+    private ImageServiceImpl imageServiceImpl;
 
     @GetMapping
-    public ResponseEntity<String> getWelcome(){
+    public ResponseEntity<?> getWelcome(){
         return new ResponseEntity<String>("Welcome",HttpStatus.OK);
     }
 
     @PostMapping("/upload/image")
-    public ResponseEntity<String> uploadImage(@RequestParam("image") MultipartFile file,
+    public ResponseEntity<OrgImage> uploadImage(@RequestParam("image") MultipartFile file,
                                               @RequestParam("author") String author,
                                               @RequestParam("fileType") String fileType) throws IOException {
 
         System.out.println("ImageController - uploadImage - Enter");
-        String imageUploadStatus = imageService.uploadImage(file, author, fileType);
-
-        return ResponseEntity.status(HttpStatus.OK).body(imageUploadStatus);
+        return ResponseEntity.status(HttpStatus.OK).body(imageServiceImpl.uploadImage(file, author, fileType));
     }
 
     @GetMapping("/download/image/orginal/{author}")
@@ -58,10 +53,10 @@ public class ImageController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Failed to fetch Iamge");
         }
 
-        if(orgImage.getImageData() == null || orgImage.getImageData().equals(0))
+        if(orgImage.getImage() == null || orgImage.getImage().equals(0))
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Image Not Found");
 
-        String encodedImg = Base64.encodeBase64String(orgImage.getImageData());
+        String encodedImg = Base64.encodeBase64String(orgImage.getImage());
 
         return ResponseEntity.status(HttpStatus.OK).body(encodedImg);
     }
@@ -80,7 +75,7 @@ public class ImageController {
 
         obj.start();
         BufferedImage toEdit = ImageIO.read(file.getInputStream());
-        BufferedImage editedImage = imageService.whiteBalanceAlg(toEdit, alg);
+        BufferedImage editedImage = imageServiceImpl.whiteBalanceAlg(toEdit, alg);
 
         if(editedImage == null){
             return ResponseEntity.status(HttpStatus.OK).body("Error in code");

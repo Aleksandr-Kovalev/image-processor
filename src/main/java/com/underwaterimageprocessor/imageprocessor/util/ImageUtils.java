@@ -2,6 +2,7 @@ package com.underwaterimageprocessor.imageprocessor.util;
 
 import com.underwaterimageprocessor.imageprocessor.model.OrgImage;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -15,6 +16,8 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 
 import org.apache.commons.codec.binary.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 
 public class ImageUtils {
@@ -39,31 +42,13 @@ public class ImageUtils {
         return image;
     }
 
-    public static boolean saveOrgImage(OrgImage image) throws IOException{
+    public static String saveOrgImageLocal(byte[] imageBytes, String id, String dir) throws IOException{
 
         System.out.println("ImageUtils - saveOrgImage - Enter");
-        System.out.println("timestamp: " + image.getRequestDate());
+        String path = dir + id + ".txt";
+        FileUtils.writeByteArrayToFile(new File(path), imageBytes);
 
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("author", image.getAuthor());
-        jsonObject.put("date", image.getRequestDate());
-        jsonObject.put("fileType", image.getFileType());
-        jsonObject.put("image", (String) Base64.encodeBase64String(image.getImageData()));
-        FileWriter file = null;
-
-        try{
-            file = new FileWriter("D:/Sandbox/image-processor/OrgImages/"
-                                    + image.getAuthor() + ".json");
-            file.write(jsonObject.toJSONString());
-        } catch ( IOException e) {
-            System.out.println("File creation failed.");
-            System.out.println(e.getMessage());
-            return false; //image upload failed
-        } finally {
-            file.close();
-        }
-
-        return true; //image uploaded successfully
+        return path;
 
     }
 
@@ -79,14 +64,14 @@ public class ImageUtils {
             obj = new JSONParser().parse(new FileReader("D:/Sandbox/image-processor/OrgImages/"
                                                                             + author + ".json"));
             jsonObj = (JSONObject) obj;
-            orgImage.setAuthor((String) jsonObj.get("author"));
-            orgImage.setRequestDate((String) jsonObj.get("date"));
+            orgImage.setAuthorId((String) jsonObj.get("author"));
+            orgImage.setUploadDate((String) jsonObj.get("date"));
             orgImage.setFileType((String) jsonObj.get("fileType"));
 
             String base64String = (String) jsonObj.get("image");
             byte[] decodedImg =  Base64.decodeBase64(base64String);
 
-            orgImage.setImageData(decodedImg);
+            orgImage.setImage(decodedImg);
 
         } catch (FileNotFoundException e) {
             System.out.println("File not found.");
